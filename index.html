@@ -1,0 +1,1697 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f6f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Lundi Fit">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+  <title>Lundi Fit - Suivi poids</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f6f1;
+      --panel: #ffffff;
+      --panel-2: #eff3ed;
+      --ink: #14201c;
+      --muted: #62706a;
+      --line: #d9dfd8;
+      --soft-line: #e9ede7;
+      --mint: #00b894;
+      --mint-dark: #007b66;
+      --cyan: #1976d2;
+      --coral: #e65f45;
+      --amber: #c98f17;
+      --shadow: 0 18px 45px rgba(20, 32, 28, 0.08);
+      --radius: 8px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      background:
+        linear-gradient(90deg, rgba(20, 32, 28, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(20, 32, 28, 0.035) 1px, transparent 1px),
+        var(--bg);
+      background-size: 44px 44px;
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding:
+        calc(28px + env(safe-area-inset-top))
+        calc(28px + env(safe-area-inset-right))
+        calc(28px + env(safe-area-inset-bottom))
+        calc(28px + env(safe-area-inset-left));
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      border: 1px solid rgba(20, 32, 28, 0.1);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(20, 32, 28, 0.06);
+      flex: 0 0 auto;
+      overflow: hidden;
+      padding: 3px;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 9px;
+      object-fit: cover;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(340px, 0.84fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      padding: 18px 18px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+      font-weight: 800;
+    }
+
+    .panel-kicker {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+      box-shadow: 0 10px 28px rgba(20, 32, 28, 0.05);
+    }
+
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric-icon {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--panel-2);
+      flex: 0 0 auto;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 30px;
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .metric small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+      margin-top: 7px;
+    }
+
+    .metric.loss strong,
+    .good {
+      color: var(--mint-dark);
+    }
+
+    .warn {
+      color: var(--amber);
+    }
+
+    .bad {
+      color: var(--coral);
+    }
+
+    .chart-panel {
+      min-height: 520px;
+    }
+
+    .chart-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .segmented {
+      display: inline-grid;
+      grid-template-columns: repeat(2, minmax(72px, 1fr));
+      gap: 3px;
+      padding: 3px;
+      background: #e8eee8;
+      border: 1px solid #d7ded5;
+      border-radius: 8px;
+      min-height: 38px;
+    }
+
+    .segmented button {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      color: var(--ink);
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(20, 32, 28, 0.08);
+    }
+
+    .chart-wrap {
+      position: relative;
+      padding: 12px 16px 20px;
+      overflow-x: hidden;
+    }
+
+    .chart {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .chart-empty {
+      min-height: 410px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px;
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      z-index: 6;
+      min-width: 142px;
+      padding: 9px 10px;
+      background: #111a17;
+      color: #fff;
+      border-radius: 8px;
+      pointer-events: none;
+      transform: translate(-50%, -112%);
+      opacity: 0;
+      transition: opacity 140ms ease;
+      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.18);
+      font-size: 12px;
+    }
+
+    .chart-tooltip.visible {
+      opacity: 1;
+    }
+
+    .chart-tooltip strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .chart-foot {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 0 18px 18px;
+    }
+
+    .insight {
+      min-height: 82px;
+      padding: 13px;
+      border: 1px solid var(--soft-line);
+      border-radius: var(--radius);
+      background: #fbfcfa;
+    }
+
+    .insight span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 7px;
+    }
+
+    .insight strong {
+      font-size: 18px;
+      line-height: 1.15;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .form-panel,
+    .history-panel,
+    .progress-panel {
+      padding: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--mint);
+      box-shadow: 0 0 0 4px rgba(0, 184, 148, 0.13);
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .hint {
+      min-height: 18px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .error {
+      color: var(--coral);
+      font-weight: 700;
+    }
+
+    .primary-button,
+    .ghost-button,
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      border-radius: 8px;
+      font-weight: 850;
+      line-height: 1;
+    }
+
+    .primary-button {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 16px;
+      color: #fff;
+      background: #14201c;
+    }
+
+    .primary-button:hover {
+      background: #20352d;
+    }
+
+    .ghost-button {
+      padding: 0 12px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+    }
+
+    .ghost-button:hover,
+    .icon-button:hover {
+      border-color: #b9c5bb;
+      background: #fff;
+    }
+
+    .icon-button {
+      width: 40px;
+      padding: 0;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+      flex: 0 0 auto;
+    }
+
+    .icon-button.danger:hover {
+      color: #fff;
+      border-color: var(--coral);
+      background: var(--coral);
+    }
+
+    .link-button {
+      min-height: 34px;
+      padding: 0;
+      color: var(--cyan);
+      background: transparent;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .progress-wrap {
+      display: grid;
+      grid-template-columns: 142px minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .ring {
+      --value: 0%;
+      width: 142px;
+      height: 142px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, #fff 0 58%, transparent 59%),
+        conic-gradient(var(--mint) var(--value), #e2e8e0 0);
+      border: 1px solid var(--line);
+    }
+
+    .ring strong {
+      font-size: 27px;
+      line-height: 1;
+    }
+
+    .ring span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    .goal-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .goal-item {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--soft-line);
+    }
+
+    .goal-item:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .goal-item span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .goal-item strong {
+      text-align: right;
+      font-size: 14px;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 16px;
+      max-height: 362px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .history-row {
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 8px 8px 12px;
+      border: 1px solid var(--soft-line);
+      border-radius: 8px;
+      background: #fbfcfa;
+    }
+
+    .history-row strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .history-row span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .delta {
+      min-width: 68px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .empty-state {
+      min-height: 140px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 22px;
+      border: 1px dashed #cbd5cb;
+      border-radius: 8px;
+      background: #fbfcfa;
+    }
+
+    .demo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      color: var(--mint-dark);
+      background: rgba(0, 184, 148, 0.12);
+      border: 1px solid rgba(0, 184, 148, 0.24);
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    svg {
+      display: block;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 1120px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .side-stack {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .history-panel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        padding:
+          calc(16px + env(safe-area-inset-top))
+          calc(16px + env(safe-area-inset-right))
+          calc(16px + env(safe-area-inset-bottom))
+          calc(16px + env(safe-area-inset-left));
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+
+      .metric-grid,
+      .chart-foot,
+      .side-stack {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-panel {
+        min-height: auto;
+      }
+
+      .panel-header {
+        display: grid;
+      }
+
+      .chart-toolbar {
+        justify-content: flex-start;
+      }
+
+      .progress-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .ring {
+        justify-self: center;
+      }
+
+      .chart-wrap {
+        padding: 8px 10px 16px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      .brand {
+        align-items: flex-start;
+      }
+
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 11px;
+      }
+
+      .brand h1 {
+        font-size: 21px;
+      }
+
+      .ghost-button {
+        min-width: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <img src="assets/icon-192.png" width="42" height="42" alt="">
+        </div>
+        <div>
+          <h1>Lundi Fit</h1>
+          <p id="todayLine">Suivi hebdomadaire</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="demo-badge" id="demoBadge" hidden>Aperçu</span>
+        <button class="ghost-button" id="exportBtn" type="button" title="Exporter en CSV">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Export
+        </button>
+        <button class="ghost-button" id="importBtn" type="button" title="Importer un CSV">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 21V9m0 0 4 4m-4-4-4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Import
+        </button>
+        <button class="icon-button danger" id="resetBtn" type="button" title="Remise à zéro" aria-label="Remise à zéro">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 6h18M8 6V4h8v2m-9 4 1 10h8l1-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <input class="file-input" id="csvInput" type="file" accept=".csv,text/csv">
+      </div>
+    </header>
+
+    <section class="metric-grid" aria-label="Indicateurs">
+      <article class="metric">
+        <div class="metric-top">
+          <span>Poids actuel</span>
+          <span class="metric-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+              <path d="M7 20h10a3 3 0 0 0 3-3V8a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v9a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M9 9a3 3 0 0 1 6 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </div>
+        <div>
+          <strong id="currentWeight">--</strong>
+          <small id="currentWeightSub">Aucune pesée</small>
+        </div>
+      </article>
+      <article class="metric loss">
+        <div class="metric-top">
+          <span>Perte totale</span>
+          <span class="metric-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+              <path d="M12 4v16m0 0 5-5m-5 5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </div>
+        <div>
+          <strong id="totalLoss">--</strong>
+          <small id="totalLossSub">Depuis le départ</small>
+        </div>
+      </article>
+      <article class="metric">
+        <div class="metric-top">
+          <span>Rythme 4 semaines</span>
+          <span class="metric-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+              <path d="M4 17 9 12l4 4 7-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14 7h6v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </div>
+        <div>
+          <strong id="pace">--</strong>
+          <small id="paceSub">Moyenne hebdo</small>
+        </div>
+      </article>
+      <article class="metric">
+        <div class="metric-top">
+          <span>Assiduité</span>
+          <span class="metric-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+              <path d="M8 2v4M16 2v4M3.5 9h17M6 5h12a2.5 2.5 0 0 1 2.5 2.5V18A3.5 3.5 0 0 1 17 21.5H7A3.5 3.5 0 0 1 3.5 18V7.5A2.5 2.5 0 0 1 6 5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+        </div>
+        <div>
+          <strong id="streak">--</strong>
+          <small id="streakSub">Lundis suivis</small>
+        </div>
+      </article>
+    </section>
+
+    <main class="shell">
+      <section class="panel chart-panel" aria-label="Courbe de poids">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Courbe de progression</h2>
+            <p class="panel-kicker" id="chartRange">Poids, objectif et tendance</p>
+          </div>
+          <div class="chart-toolbar">
+            <div class="segmented" role="group" aria-label="Type de courbe">
+              <button type="button" id="modeWeight" aria-pressed="true">Poids</button>
+              <button type="button" id="modeLoss" aria-pressed="false">Perte</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div id="chartHost"></div>
+          <div class="chart-tooltip" id="chartTooltip" role="status" aria-live="polite"></div>
+        </div>
+        <div class="chart-foot">
+          <div class="insight">
+            <span>Dernière variation</span>
+            <strong id="lastDelta">--</strong>
+          </div>
+          <div class="insight">
+            <span>Objectif estimé</span>
+            <strong id="eta">--</strong>
+          </div>
+          <div class="insight">
+            <span>Meilleure série</span>
+            <strong id="bestRun">--</strong>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-stack">
+        <section class="panel form-panel" aria-label="Nouvelle pesée">
+          <div>
+            <h2 class="panel-title">Pesée du lundi</h2>
+            <p class="panel-kicker" id="editState">Nouvelle entrée</p>
+          </div>
+          <form class="form-grid" id="entryForm">
+            <div class="field-row">
+              <div class="field">
+                <label for="dateInput">Date</label>
+                <input id="dateInput" type="date" required>
+              </div>
+              <div class="field">
+                <label for="weightInput">Poids</label>
+                <input id="weightInput" type="number" inputmode="decimal" min="20" max="300" step="0.1" placeholder="kg" required>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="startInput">Départ</label>
+                <input id="startInput" type="number" inputmode="decimal" min="20" max="300" step="0.1" placeholder="kg">
+              </div>
+              <div class="field">
+                <label for="goalInput">Objectif</label>
+                <input id="goalInput" type="number" inputmode="decimal" min="20" max="300" step="0.1" placeholder="kg">
+              </div>
+            </div>
+            <p class="hint" id="formHint"></p>
+            <button class="primary-button" type="submit">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M17 21v-8H7v8M7 3v5h8" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+              Enregistrer
+            </button>
+            <button class="link-button" type="button" id="nextMondayBtn">Aller au prochain lundi</button>
+          </form>
+        </section>
+
+        <section class="panel progress-panel" aria-label="Objectif">
+          <div>
+            <h2 class="panel-title">Objectif</h2>
+            <p class="panel-kicker">Trajectoire personnelle</p>
+          </div>
+          <div class="progress-wrap">
+            <div class="ring" id="goalRing" aria-label="Progression objectif">
+              <div>
+                <strong id="goalPercent">0%</strong>
+                <span>atteint</span>
+              </div>
+            </div>
+            <div class="goal-list">
+              <div class="goal-item">
+                <span>Restant</span>
+                <strong id="remaining">--</strong>
+              </div>
+              <div class="goal-item">
+                <span>Objectif</span>
+                <strong id="goalWeight">--</strong>
+              </div>
+              <div class="goal-item">
+                <span>Départ</span>
+                <strong id="startWeight">--</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel history-panel" aria-label="Historique">
+          <div class="panel-header" style="padding:0">
+            <div>
+              <h2 class="panel-title">Historique</h2>
+              <p class="panel-kicker" id="historyCount">0 entrée</p>
+            </div>
+          </div>
+          <div class="history-list" id="historyList"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const STORAGE_KEY = "lundi-fit:v1";
+      const FR = "fr-FR";
+      const state = loadState();
+      let chartMode = "weight";
+
+      const els = {
+        todayLine: document.getElementById("todayLine"),
+        demoBadge: document.getElementById("demoBadge"),
+        currentWeight: document.getElementById("currentWeight"),
+        currentWeightSub: document.getElementById("currentWeightSub"),
+        totalLoss: document.getElementById("totalLoss"),
+        totalLossSub: document.getElementById("totalLossSub"),
+        pace: document.getElementById("pace"),
+        paceSub: document.getElementById("paceSub"),
+        streak: document.getElementById("streak"),
+        streakSub: document.getElementById("streakSub"),
+        chartRange: document.getElementById("chartRange"),
+        chartHost: document.getElementById("chartHost"),
+        chartTooltip: document.getElementById("chartTooltip"),
+        modeWeight: document.getElementById("modeWeight"),
+        modeLoss: document.getElementById("modeLoss"),
+        lastDelta: document.getElementById("lastDelta"),
+        eta: document.getElementById("eta"),
+        bestRun: document.getElementById("bestRun"),
+        entryForm: document.getElementById("entryForm"),
+        dateInput: document.getElementById("dateInput"),
+        weightInput: document.getElementById("weightInput"),
+        startInput: document.getElementById("startInput"),
+        goalInput: document.getElementById("goalInput"),
+        formHint: document.getElementById("formHint"),
+        editState: document.getElementById("editState"),
+        nextMondayBtn: document.getElementById("nextMondayBtn"),
+        goalRing: document.getElementById("goalRing"),
+        goalPercent: document.getElementById("goalPercent"),
+        remaining: document.getElementById("remaining"),
+        goalWeight: document.getElementById("goalWeight"),
+        startWeight: document.getElementById("startWeight"),
+        historyCount: document.getElementById("historyCount"),
+        historyList: document.getElementById("historyList"),
+        exportBtn: document.getElementById("exportBtn"),
+        importBtn: document.getElementById("importBtn"),
+        resetBtn: document.getElementById("resetBtn"),
+        csvInput: document.getElementById("csvInput")
+      };
+
+      init();
+
+      function init() {
+        els.todayLine.textContent = "Aujourd'hui, " + formatHumanDate(new Date());
+        els.dateInput.value = latestMondayISO();
+        hydrateProfileInputs();
+        bindEvents();
+        render();
+      }
+
+      function bindEvents() {
+        els.entryForm.addEventListener("submit", handleEntrySubmit);
+        els.dateInput.addEventListener("change", updateDateHint);
+        els.nextMondayBtn.addEventListener("click", function () {
+          els.dateInput.value = nextMondayISO(parseISO(els.dateInput.value || latestMondayISO()));
+          updateDateHint();
+        });
+        els.modeWeight.addEventListener("click", function () {
+          chartMode = "weight";
+          renderChart();
+        });
+        els.modeLoss.addEventListener("click", function () {
+          chartMode = "loss";
+          renderChart();
+        });
+        els.exportBtn.addEventListener("click", exportCSV);
+        els.importBtn.addEventListener("click", function () {
+          els.csvInput.click();
+        });
+        els.csvInput.addEventListener("change", importCSV);
+        els.resetBtn.addEventListener("click", resetData);
+        window.addEventListener("resize", debounce(renderChart, 120));
+        updateDateHint();
+      }
+
+      function loadState() {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            return normalizeState(parsed);
+          }
+        } catch (error) {
+          console.warn(error);
+        }
+        return createDemoState();
+      }
+
+      function normalizeState(raw) {
+        const entries = Array.isArray(raw.entries) ? raw.entries : [];
+        const cleanEntries = entries
+          .map(function (entry) {
+            return {
+              date: String(entry.date || ""),
+              weight: Number(entry.weight)
+            };
+          })
+          .filter(function (entry) {
+            return isISODate(entry.date) && Number.isFinite(entry.weight);
+          });
+
+        return {
+          mode: raw.mode === "live" ? "live" : "demo",
+          profile: {
+            startWeight: numberOrNull(raw.profile && raw.profile.startWeight),
+            goalWeight: numberOrNull(raw.profile && raw.profile.goalWeight)
+          },
+          entries: sortEntries(cleanEntries)
+        };
+      }
+
+      function createDemoState() {
+        const monday = parseISO(latestMondayISO());
+        const values = [96.8, 96.1, 95.9, 94.8, 94.2, 93.7, 92.9, 92.4, 91.8, 91.3, 90.9, 90.2];
+        const entries = values.map(function (weight, index) {
+          const date = addDays(monday, (index - values.length + 1) * 7);
+          return { date: toISO(date), weight: weight };
+        });
+
+        return {
+          mode: "demo",
+          profile: {
+            startWeight: values[0],
+            goalWeight: 84
+          },
+          entries: entries
+        };
+      }
+
+      function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function hydrateProfileInputs() {
+        els.startInput.value = state.profile.startWeight == null ? "" : round1(state.profile.startWeight);
+        els.goalInput.value = state.profile.goalWeight == null ? "" : round1(state.profile.goalWeight);
+      }
+
+      function handleEntrySubmit(event) {
+        event.preventDefault();
+        const date = els.dateInput.value;
+        const weight = Number(els.weightInput.value.replace(",", "."));
+        const startWeight = numberOrNull(els.startInput.value);
+        const goalWeight = numberOrNull(els.goalInput.value);
+
+        if (!isISODate(date)) {
+          setFormHint("Date invalide.", true);
+          return;
+        }
+
+        if (!isMonday(parseISO(date))) {
+          setFormHint("Choisis un lundi pour garder une courbe propre.", true);
+          return;
+        }
+
+        if (!Number.isFinite(weight) || weight < 20 || weight > 300) {
+          setFormHint("Entre un poids réaliste en kg.", true);
+          return;
+        }
+
+        if (state.mode === "demo") {
+          state.mode = "live";
+          state.entries = [];
+          state.profile.startWeight = startWeight == null ? weight : startWeight;
+        } else if (startWeight != null) {
+          state.profile.startWeight = startWeight;
+        }
+
+        state.profile.goalWeight = goalWeight;
+        upsertEntry({ date: date, weight: round1(weight) });
+        state.entries = sortEntries(state.entries);
+        saveState();
+        setFormHint("Pesée enregistrée.", false);
+        els.editState.textContent = "Nouvelle entrée";
+        els.weightInput.value = "";
+        hydrateProfileInputs();
+        render();
+      }
+
+      function upsertEntry(nextEntry) {
+        const index = state.entries.findIndex(function (entry) {
+          return entry.date === nextEntry.date;
+        });
+        if (index >= 0) {
+          state.entries[index] = nextEntry;
+        } else {
+          state.entries.push(nextEntry);
+        }
+      }
+
+      function editEntry(date) {
+        const entry = state.entries.find(function (item) {
+          return item.date === date;
+        });
+        if (!entry) return;
+        els.dateInput.value = entry.date;
+        els.weightInput.value = round1(entry.weight);
+        els.editState.textContent = "Modification";
+        updateDateHint();
+        els.weightInput.focus();
+      }
+
+      function deleteEntry(date) {
+        state.entries = state.entries.filter(function (entry) {
+          return entry.date !== date;
+        });
+        if (state.mode === "demo") {
+          state.mode = "live";
+        }
+        saveState();
+        render();
+      }
+
+      function resetData() {
+        const ok = window.confirm("Effacer les pesées et repartir de zéro ?");
+        if (!ok) return;
+        state.mode = "live";
+        state.entries = [];
+        state.profile.startWeight = null;
+        state.profile.goalWeight = null;
+        els.weightInput.value = "";
+        els.dateInput.value = latestMondayISO();
+        saveState();
+        hydrateProfileInputs();
+        render();
+      }
+
+      function render() {
+        state.entries = sortEntries(state.entries);
+        els.demoBadge.hidden = state.mode !== "demo";
+        renderMetrics();
+        renderProgress();
+        renderHistory();
+        renderChart();
+        updateDateHint();
+      }
+
+      function renderMetrics() {
+        const entries = state.entries;
+        const latest = entries[entries.length - 1];
+        const previous = entries[entries.length - 2];
+        const start = getStartWeight();
+        const loss = latest && start != null ? start - latest.weight : null;
+        const pace = getPace();
+        const streak = getCurrentStreak();
+        const best = getBestRun();
+
+        els.currentWeight.textContent = latest ? kg(latest.weight) : "--";
+        els.currentWeightSub.textContent = latest ? formatHumanDate(parseISO(latest.date)) : "Aucune pesée";
+
+        els.totalLoss.textContent = loss == null ? "--" : signedKg(loss, true);
+        els.totalLossSub.textContent = start == null ? "Définis un départ" : "Depuis " + kg(start);
+
+        els.pace.textContent = pace == null ? "--" : signedKg(pace, true) + "/sem";
+        els.pace.className = pace == null ? "" : pace >= 0 ? "good" : "bad";
+        els.paceSub.textContent = pace == null ? "Moyenne hebdo" : "Sur les dernières pesées";
+
+        els.streak.textContent = entries.length ? String(streak) : "--";
+        els.streakSub.textContent = streak > 1 ? "Lundis d'affilée" : "Lundi suivi";
+
+        if (latest && previous) {
+          const delta = previous.weight - latest.weight;
+          els.lastDelta.textContent = signedKg(delta, true);
+          els.lastDelta.className = delta >= 0 ? "good" : "bad";
+        } else {
+          els.lastDelta.textContent = "--";
+          els.lastDelta.className = "";
+        }
+
+        els.eta.textContent = getETA();
+        els.bestRun.textContent = entries.length ? best + " lundi" + (best > 1 ? "s" : "") : "--";
+      }
+
+      function renderProgress() {
+        const latest = state.entries[state.entries.length - 1];
+        const start = getStartWeight();
+        const goal = state.profile.goalWeight;
+        let progress = 0;
+        let remaining = null;
+
+        if (latest && start != null && goal != null && start !== goal) {
+          const total = start - goal;
+          const done = start - latest.weight;
+          progress = total > 0 ? done / total : (latest.weight - start) / (goal - start);
+          remaining = latest.weight - goal;
+        }
+
+        progress = clamp(progress, 0, 1);
+        els.goalRing.style.setProperty("--value", Math.round(progress * 100) + "%");
+        els.goalPercent.textContent = Math.round(progress * 100) + "%";
+        els.remaining.textContent = remaining == null ? "--" : signedKg(Math.abs(remaining), false);
+        els.goalWeight.textContent = goal == null ? "--" : kg(goal);
+        els.startWeight.textContent = start == null ? "--" : kg(start);
+      }
+
+      function renderHistory() {
+        const entries = state.entries.slice().reverse();
+        els.historyCount.textContent = state.entries.length + " entrée" + (state.entries.length > 1 ? "s" : "");
+        if (!entries.length) {
+          els.historyList.innerHTML = '<div class="empty-state">Aucune pesée enregistrée.</div>';
+          return;
+        }
+
+        els.historyList.innerHTML = entries.map(function (entry, reverseIndex) {
+          const index = state.entries.length - 1 - reverseIndex;
+          const previous = state.entries[index - 1];
+          const delta = previous ? previous.weight - entry.weight : null;
+          const deltaClass = delta == null ? "" : delta >= 0 ? "good" : "bad";
+          const deltaText = delta == null ? "Départ" : signedKg(delta, true);
+
+          return [
+            '<div class="history-row">',
+              '<div>',
+                '<strong>' + kg(entry.weight) + '</strong>',
+                '<span>' + escapeHTML(formatHumanDate(parseISO(entry.date))) + '</span>',
+              '</div>',
+              '<div class="delta ' + deltaClass + '">' + deltaText + '</div>',
+              '<button class="icon-button" type="button" data-edit="' + entry.date + '" title="Modifier" aria-label="Modifier">',
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 20 4.8-1 9.8-9.8a2.1 2.1 0 0 0-3-3L5.8 16 4 20Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m14 7 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+              '</button>',
+              '<button class="icon-button danger" type="button" data-delete="' + entry.date + '" title="Supprimer" aria-label="Supprimer">',
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 4 1 10h8l1-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+              '</button>',
+            '</div>'
+          ].join("");
+        }).join("");
+
+        els.historyList.querySelectorAll("[data-edit]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            editEntry(button.getAttribute("data-edit"));
+          });
+        });
+        els.historyList.querySelectorAll("[data-delete]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            deleteEntry(button.getAttribute("data-delete"));
+          });
+        });
+      }
+
+      function renderChart() {
+        els.modeWeight.setAttribute("aria-pressed", String(chartMode === "weight"));
+        els.modeLoss.setAttribute("aria-pressed", String(chartMode === "loss"));
+
+        const entries = state.entries;
+        if (entries.length < 2) {
+          els.chartHost.innerHTML = '<div class="chart-empty">Deux pesées du lundi suffisent pour tracer la courbe.</div>';
+          els.chartRange.textContent = "En attente de données";
+          return;
+        }
+
+        const hostWidth = Math.floor(els.chartHost.getBoundingClientRect().width || 920);
+        const compactChart = hostWidth < 560;
+        const width = compactChart ? Math.max(320, hostWidth) : 920;
+        const height = compactChart ? 300 : 430;
+        const margin = compactChart
+          ? { top: 22, right: 18, bottom: 38, left: 48 }
+          : { top: 28, right: 34, bottom: 48, left: 58 };
+        const plotW = width - margin.left - margin.right;
+        const plotH = height - margin.top - margin.bottom;
+        const tickFontSize = compactChart ? 11 : 12;
+        const lineStrokeWidth = compactChart ? 3.2 : 4;
+        const pointRadius = compactChart ? 5 : 6;
+        const startWeight = getStartWeight() == null ? entries[0].weight : getStartWeight();
+        const values = entries.map(function (entry) {
+          return chartMode === "weight" ? entry.weight : startWeight - entry.weight;
+        });
+
+        const dates = entries.map(function (entry) {
+          return parseISO(entry.date).getTime();
+        });
+        const minX = Math.min.apply(null, dates);
+        const maxX = Math.max.apply(null, dates);
+        const xRange = maxX - minX || 1;
+        let minY = Math.min.apply(null, values);
+        let maxY = Math.max.apply(null, values);
+
+        if (chartMode === "weight" && state.profile.goalWeight != null) {
+          minY = Math.min(minY, state.profile.goalWeight);
+          maxY = Math.max(maxY, state.profile.goalWeight);
+        }
+        if (chartMode === "loss") {
+          minY = Math.min(0, minY);
+          maxY = Math.max(1, maxY);
+        }
+
+        const paddingY = Math.max((maxY - minY) * 0.16, chartMode === "weight" ? 1.2 : 0.6);
+        minY -= paddingY;
+        maxY += paddingY;
+        const yRange = maxY - minY || 1;
+
+        const x = function (dateMs) {
+          return margin.left + ((dateMs - minX) / xRange) * plotW;
+        };
+        const y = function (value) {
+          return margin.top + (1 - (value - minY) / yRange) * plotH;
+        };
+
+        const points = entries.map(function (entry, index) {
+          const value = values[index];
+          return {
+            x: x(parseISO(entry.date).getTime()),
+            y: y(value),
+            value: value,
+            entry: entry
+          };
+        });
+
+        const path = points.map(function (point, index) {
+          return (index === 0 ? "M" : "L") + point.x.toFixed(2) + " " + point.y.toFixed(2);
+        }).join(" ");
+
+        const area = path + " L " + points[points.length - 1].x.toFixed(2) + " " + (margin.top + plotH) + " L " + points[0].x.toFixed(2) + " " + (margin.top + plotH) + " Z";
+        const yTicks = makeTicks(minY, maxY, compactChart ? 4 : 5);
+        const xTicks = entries.filter(function (_entry, index) {
+          const maxLabels = compactChart ? 3 : 5;
+          const step = entries.length > maxLabels + 1 ? Math.ceil(entries.length / maxLabels) : 1;
+          return index === 0 || index === entries.length - 1 || index % step === 0;
+        });
+
+        const targetLine = chartMode === "weight" && state.profile.goalWeight != null
+          ? '<line x1="' + margin.left + '" y1="' + y(state.profile.goalWeight).toFixed(2) + '" x2="' + (margin.left + plotW) + '" y2="' + y(state.profile.goalWeight).toFixed(2) + '" stroke="#e65f45" stroke-width="2" stroke-dasharray="6 8"/><text x="' + (margin.left + plotW - 4) + '" y="' + (y(state.profile.goalWeight) - 8).toFixed(2) + '" text-anchor="end" fill="#b84430" font-size="' + tickFontSize + '" font-weight="800">objectif</text>'
+          : "";
+
+        els.chartHost.innerHTML = [
+          '<svg class="chart" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Courbe de progression" preserveAspectRatio="xMidYMid meet">',
+            '<defs>',
+              '<linearGradient id="lineFill" x1="0" x2="0" y1="0" y2="1">',
+                '<stop offset="0%" stop-color="#00b894" stop-opacity="0.22"/>',
+                '<stop offset="100%" stop-color="#00b894" stop-opacity="0"/>',
+              '</linearGradient>',
+            '</defs>',
+            '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="#ffffff" rx="8"/>',
+            yTicks.map(function (tick) {
+              const yy = y(tick);
+              const label = chartMode === "weight" ? tick.toFixed(1) + " kg" : tick.toFixed(1) + " kg";
+              return '<g><line x1="' + margin.left + '" y1="' + yy.toFixed(2) + '" x2="' + (margin.left + plotW) + '" y2="' + yy.toFixed(2) + '" stroke="#e8ede7"/><text x="' + (margin.left - 10) + '" y="' + (yy + 4).toFixed(2) + '" text-anchor="end" fill="#66746e" font-size="' + tickFontSize + '">' + label + '</text></g>';
+            }).join(""),
+            xTicks.map(function (entry) {
+              const xx = x(parseISO(entry.date).getTime());
+              return '<text x="' + xx.toFixed(2) + '" y="' + (height - 16) + '" text-anchor="middle" fill="#66746e" font-size="' + tickFontSize + '">' + shortDate(parseISO(entry.date)) + '</text>';
+            }).join(""),
+            targetLine,
+            '<path d="' + area + '" fill="url(#lineFill)"/>',
+            '<path d="' + path + '" fill="none" stroke="#00a987" stroke-width="' + lineStrokeWidth + '" stroke-linecap="round" stroke-linejoin="round"/>',
+            points.map(function (point, index) {
+              const main = chartMode === "weight" ? kg(point.entry.weight) : signedKg(point.value, false);
+              const secondary = formatHumanDate(parseISO(point.entry.date));
+              return '<circle class="chart-point" cx="' + point.x.toFixed(2) + '" cy="' + point.y.toFixed(2) + '" r="' + pointRadius + '" fill="#ffffff" stroke="#007b66" stroke-width="3" tabindex="0" data-title="' + main + '" data-subtitle="' + escapeHTML(secondary) + '" data-index="' + index + '"><title>' + main + " - " + escapeHTML(secondary) + '</title></circle>';
+            }).join(""),
+          '</svg>'
+        ].join("");
+
+        const first = parseISO(entries[0].date);
+        const last = parseISO(entries[entries.length - 1].date);
+        els.chartRange.textContent = shortDate(first) + " - " + shortDate(last);
+        attachChartTooltips();
+      }
+
+      function attachChartTooltips() {
+        const points = els.chartHost.querySelectorAll(".chart-point");
+        points.forEach(function (point) {
+          const show = function () {
+            const title = point.getAttribute("data-title");
+            const subtitle = point.getAttribute("data-subtitle");
+            els.chartTooltip.innerHTML = '<strong>' + escapeHTML(title) + '</strong><span>' + escapeHTML(subtitle) + '</span>';
+            const chartRect = els.chartHost.getBoundingClientRect();
+            const pointRect = point.getBoundingClientRect();
+            els.chartTooltip.style.left = (pointRect.left - chartRect.left + pointRect.width / 2) + "px";
+            els.chartTooltip.style.top = (pointRect.top - chartRect.top) + "px";
+            els.chartTooltip.classList.add("visible");
+          };
+          const hide = function () {
+            els.chartTooltip.classList.remove("visible");
+          };
+          point.addEventListener("mouseenter", show);
+          point.addEventListener("focus", show);
+          point.addEventListener("mouseleave", hide);
+          point.addEventListener("blur", hide);
+        });
+      }
+
+      function getStartWeight() {
+        if (state.profile.startWeight != null) return state.profile.startWeight;
+        return state.entries[0] ? state.entries[0].weight : null;
+      }
+
+      function getPace() {
+        const entries = state.entries;
+        if (entries.length < 2) return null;
+        const recent = entries.slice(Math.max(0, entries.length - 5));
+        const first = recent[0];
+        const last = recent[recent.length - 1];
+        const weeks = Math.max(1, Math.round((parseISO(last.date) - parseISO(first.date)) / (7 * 24 * 60 * 60 * 1000)));
+        return round2((first.weight - last.weight) / weeks);
+      }
+
+      function getETA() {
+        const pace = getPace();
+        const latest = state.entries[state.entries.length - 1];
+        const goal = state.profile.goalWeight;
+        if (!latest || goal == null) return "--";
+        const remaining = latest.weight - goal;
+        if (remaining <= 0) return "Atteint";
+        if (pace == null || pace <= 0.05) return "Ajuste le rythme";
+        const weeks = Math.ceil(remaining / pace);
+        const eta = addDays(parseISO(latest.date), weeks * 7);
+        return shortDate(eta);
+      }
+
+      function getCurrentStreak() {
+        const entries = state.entries;
+        if (!entries.length) return 0;
+        let streak = 1;
+        for (let i = entries.length - 1; i > 0; i -= 1) {
+          const current = parseISO(entries[i].date);
+          const previous = parseISO(entries[i - 1].date);
+          const days = Math.round((current - previous) / (24 * 60 * 60 * 1000));
+          if (days === 7) {
+            streak += 1;
+          } else {
+            break;
+          }
+        }
+        return streak;
+      }
+
+      function getBestRun() {
+        const entries = state.entries;
+        if (!entries.length) return 0;
+        let best = 1;
+        let current = 1;
+        for (let i = 1; i < entries.length; i += 1) {
+          const days = Math.round((parseISO(entries[i].date) - parseISO(entries[i - 1].date)) / (24 * 60 * 60 * 1000));
+          if (days === 7) {
+            current += 1;
+          } else {
+            current = 1;
+          }
+          best = Math.max(best, current);
+        }
+        return best;
+      }
+
+      function updateDateHint() {
+        const date = els.dateInput.value ? parseISO(els.dateInput.value) : null;
+        if (!date || !isISODate(els.dateInput.value)) {
+          setFormHint("", false);
+          return;
+        }
+        const existing = state.entries.some(function (entry) {
+          return entry.date === els.dateInput.value;
+        });
+        if (!isMonday(date)) {
+          setFormHint("Cette date n'est pas un lundi.", true);
+        } else if (existing) {
+          setFormHint("Une pesée existe déjà pour ce lundi, elle sera remplacée.", false);
+        } else if (state.mode === "demo") {
+          setFormHint("Ta première pesée remplacera les données d'aperçu.", false);
+        } else {
+          setFormHint("", false);
+        }
+      }
+
+      function setFormHint(message, isError) {
+        els.formHint.textContent = message;
+        els.formHint.classList.toggle("error", Boolean(isError));
+      }
+
+      function exportCSV() {
+        const rows = [
+          ["date", "poids_kg"],
+          ...state.entries.map(function (entry) {
+            return [entry.date, String(entry.weight).replace(".", ",")];
+          })
+        ];
+        const csv = rows.map(function (row) {
+          return row.map(csvCell).join(";");
+        }).join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "lundi-fit-poids.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function importCSV(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function () {
+          const text = String(reader.result || "");
+          const imported = parseCSV(text);
+          if (!imported.length) {
+            window.alert("Aucune ligne valide trouvée.");
+            return;
+          }
+          state.mode = "live";
+          state.entries = sortEntries(imported);
+          if (state.profile.startWeight == null && state.entries[0]) {
+            state.profile.startWeight = state.entries[0].weight;
+          }
+          saveState();
+          hydrateProfileInputs();
+          render();
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+      }
+
+      function parseCSV(text) {
+        const lines = text.split(/\r?\n/).map(function (line) {
+          return line.trim();
+        }).filter(Boolean);
+        const rows = [];
+        lines.forEach(function (line, index) {
+          if (index === 0 && /date/i.test(line) && /poids|weight/i.test(line)) return;
+          const delimiter = line.includes(";") ? ";" : ",";
+          const parts = line.split(delimiter).map(function (part) {
+            return part.replace(/^"|"$/g, "").trim();
+          });
+          const date = parts[0];
+          const weight = Number(String(parts[1] || "").replace(",", "."));
+          if (isISODate(date) && isMonday(parseISO(date)) && Number.isFinite(weight)) {
+            rows.push({ date: date, weight: round1(weight) });
+          }
+        });
+        return rows;
+      }
+
+      function csvCell(value) {
+        const text = String(value);
+        if (/[;"\n]/.test(text)) {
+          return '"' + text.replace(/"/g, '""') + '"';
+        }
+        return text;
+      }
+
+      function makeTicks(min, max, count) {
+        const ticks = [];
+        const step = (max - min) / Math.max(1, count - 1);
+        for (let i = 0; i < count; i += 1) {
+          ticks.push(round1(min + step * i));
+        }
+        return ticks;
+      }
+
+      function sortEntries(entries) {
+        const seen = new Map();
+        entries.forEach(function (entry) {
+          seen.set(entry.date, { date: entry.date, weight: round1(entry.weight) });
+        });
+        return Array.from(seen.values()).sort(function (a, b) {
+          return a.date.localeCompare(b.date);
+        });
+      }
+
+      function latestMondayISO() {
+        const today = new Date();
+        const day = today.getDay();
+        const offset = day === 0 ? -6 : 1 - day;
+        return toISO(addDays(today, offset));
+      }
+
+      function nextMondayISO(date) {
+        const day = date.getDay();
+        const offset = day === 1 ? 7 : (8 - day) % 7 || 7;
+        return toISO(addDays(date, offset));
+      }
+
+      function isMonday(date) {
+        return date.getDay() === 1;
+      }
+
+      function isISODate(value) {
+        return /^\d{4}-\d{2}-\d{2}$/.test(String(value || "")) && !Number.isNaN(parseISO(value).getTime());
+      }
+
+      function parseISO(value) {
+        const parts = String(value).split("-").map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+
+      function toISO(date) {
+        const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const year = copy.getFullYear();
+        const month = String(copy.getMonth() + 1).padStart(2, "0");
+        const day = String(copy.getDate()).padStart(2, "0");
+        return year + "-" + month + "-" + day;
+      }
+
+      function addDays(date, days) {
+        const copy = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        copy.setDate(copy.getDate() + days);
+        return copy;
+      }
+
+      function formatHumanDate(date) {
+        return new Intl.DateTimeFormat(FR, {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          year: "numeric"
+        }).format(date);
+      }
+
+      function shortDate(date) {
+        return new Intl.DateTimeFormat(FR, {
+          day: "2-digit",
+          month: "short"
+        }).format(date).replace(".", "");
+      }
+
+      function kg(value) {
+        return round1(value).toLocaleString(FR, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + " kg";
+      }
+
+      function signedKg(value, includePlus) {
+        const sign = value > 0 && includePlus ? "+" : value < 0 ? "-" : "";
+        return sign + kg(Math.abs(value));
+      }
+
+      function round1(value) {
+        return Math.round(Number(value) * 10) / 10;
+      }
+
+      function round2(value) {
+        return Math.round(Number(value) * 100) / 100;
+      }
+
+      function numberOrNull(value) {
+        if (value === "" || value == null) return null;
+        const number = Number(String(value).replace(",", "."));
+        return Number.isFinite(number) ? round1(number) : null;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function escapeHTML(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function debounce(fn, wait) {
+        let timer = null;
+        return function () {
+          clearTimeout(timer);
+          timer = setTimeout(fn, wait);
+        };
+      }
+    })();
+  </script>
+</body>
+</html>
